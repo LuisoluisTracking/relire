@@ -19,7 +19,7 @@ export async function signUpWithEmail(email: string, password: string) {
   redirect('/onboarding/profile')
 }
 
-export async function getOAuthUrl(provider: 'google' | 'facebook') {
+export async function getOAuthUrl(provider: 'google' | 'facebook'): Promise<{ url: string } | { error: string }> {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? headersList.get('origin') ?? ''
