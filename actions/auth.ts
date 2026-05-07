@@ -7,14 +7,27 @@ import { headers } from 'next/headers'
 export async function signInWithEmail(email: string, password: string) {
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) return { error: error.message }
+  if (error) {
+    const msg = error.message === 'Invalid login credentials'
+      ? 'Email ou mot de passe incorrect. Pas encore de compte ? Inscrivez-vous.'
+      : error.message
+    return { error: msg }
+  }
   redirect('/')
 }
 
 export async function signUpWithEmail(email: string, password: string) {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({ email, password })
-  if (error) return { error: error.message }
+  if (error) {
+    const msg =
+      error.message.toLowerCase().includes('already registered') ||
+      error.message.toLowerCase().includes('already been registered') ||
+      error.message.toLowerCase().includes('user already')
+        ? 'Un compte existe déjà avec cet email. Connectez-vous plutôt.'
+        : error.message
+    return { error: msg }
+  }
   if (data.user && !data.session) return { needsConfirmation: true }
   redirect('/onboarding/profile')
 }

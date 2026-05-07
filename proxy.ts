@@ -41,8 +41,8 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/onboarding/profile', request.url))
     }
 
-    if (isAuthRoute) {
-      return NextResponse.redirect(new URL('/', request.url))
+    if (isAuthRoute || pathname === '/') {
+      return NextResponse.redirect(new URL('/profile', request.url))
     }
   }
 
