@@ -5,8 +5,11 @@ import Link from 'next/link'
 import { signUpWithEmail, getOAuthUrl } from '@/actions/auth'
 
 export default function RegisterPage() {
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [newsletter, setNewsletter] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -14,8 +17,12 @@ export default function RegisterPage() {
   function handleRegister(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (password !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.')
+      return
+    }
     startTransition(async () => {
-      const result = await signUpWithEmail(email, password)
+      const result = await signUpWithEmail(email, password, username)
       if (!result) return
       if ('error' in result) setError(result.error ?? 'Erreur')
       else if ('needsConfirmation' in result) setConfirmed(true)
@@ -80,6 +87,19 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-3">
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              placeholder="nom_utilisateur"
+              required
+              minLength={3}
+              maxLength={20}
+              className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#002F45] transition-colors"
+            />
+          </div>
           <input
             type="email"
             value={email}
@@ -88,19 +108,38 @@ export default function RegisterPage() {
             required
             className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#002F45] transition-colors"
           />
-          <div>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Mot de passe (6 caractères min.)"
+            required
+            minLength={6}
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#002F45] transition-colors"
+          />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            placeholder="Confirmer le mot de passe"
+            required
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#002F45] transition-colors"
+          />
+
+          <label className="flex items-start gap-2.5 cursor-pointer">
             <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Mot de passe"
-              required
-              minLength={6}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#002F45] transition-colors"
+              type="checkbox"
+              checked={newsletter}
+              onChange={e => setNewsletter(e.target.checked)}
+              className="mt-0.5 accent-[#002F45]"
             />
-            <p className="text-xs text-gray-400 mt-1.5">6 caractères minimum</p>
-          </div>
+            <span className="text-xs text-gray-500 leading-relaxed">
+              Recevoir les nouveautés et conseils de lecture de Relire
+            </span>
+          </label>
+
           {error && <p className="text-sm text-red-500">{error}</p>}
+
           <button
             type="submit"
             disabled={isPending}
@@ -109,7 +148,6 @@ export default function RegisterPage() {
           >
             {isPending ? 'Création…' : 'Créer mon compte'}
           </button>
-          <p className="text-xs text-center text-gray-400">Pas de newsletter forcée. Pas de spam.</p>
         </form>
       </div>
 

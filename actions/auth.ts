@@ -16,8 +16,18 @@ export async function signInWithEmail(email: string, password: string) {
   redirect('/')
 }
 
-export async function signUpWithEmail(email: string, password: string) {
+export async function signUpWithEmail(email: string, password: string, username?: string) {
   const supabase = await createClient()
+
+  if (username) {
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle()
+    if (existing) return { error: "Ce nom d'utilisateur est déjà pris." }
+  }
+
   const { data, error } = await supabase.auth.signUp({ email, password })
   if (error) {
     const msg =
@@ -28,8 +38,14 @@ export async function signUpWithEmail(email: string, password: string) {
         : error.message
     return { error: msg }
   }
+
   if (data.user && !data.session) return { needsConfirmation: true }
-  redirect('/onboarding/profile')
+
+  if (username && data.user) {
+    await supabase.from('users').update({ username, display_name: username }).eq('id', data.user.id)
+  }
+
+  redirect('/onboarding/import')
 }
 
 export async function getOAuthUrl(provider: 'google' | 'facebook'): Promise<{ url: string } | { error: string }> {

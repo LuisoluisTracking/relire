@@ -33,12 +33,13 @@ export async function proxy(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase
       .from('users')
-      .select('onboarding_completed')
+      .select('onboarding_completed, username')
       .eq('id', user.id)
       .single()
 
     if (profile && !profile.onboarding_completed && !isOnboarding) {
-      return NextResponse.redirect(new URL('/onboarding/profile', request.url))
+      const dest = profile.username ? '/onboarding/import' : '/onboarding/profile'
+      return NextResponse.redirect(new URL(dest, request.url))
     }
 
     if (isAuthRoute || pathname === '/') {
