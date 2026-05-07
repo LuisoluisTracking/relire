@@ -29,7 +29,7 @@ export async function updateProfile({
     .eq('id', user.id)
 
   if (error) return { error: error.message }
-  redirect('/onboarding/genres')
+  redirect('/onboarding/import')
 }
 
 export async function updateGenres(genres: string[]) {
@@ -43,7 +43,7 @@ export async function updateGenres(genres: string[]) {
     .eq('id', user.id)
 
   if (error) return { error: error.message }
-  redirect('/onboarding/import')
+  redirect('/onboarding/notes')
 }
 
 export async function addBookEntry(book: {
